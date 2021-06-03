@@ -19,6 +19,11 @@ struct ntp_ts_t {
   uint32_t fraction;
 };
 
+void ntp_to_timeval(struct ntp_ts_t *ntp, struct timeval *tv) {
+  tv->tv_sec = ntp->seconds - TIMESTAMP_OFFSET_1900;
+  tv->tv_usec = (uint32_t)((double)ntp->fraction * 1.0e6 / (double)(1LL << 32));
+}
+
 int main() {
   int sockfd;
 
@@ -48,6 +53,7 @@ int main() {
   struct timeval tv;
   struct ntp_ts_t ntp_ts;
   gettimeofday(&tv, NULL);
+
   // convert unix timestamp to NTP timestamp
   ntp_ts.seconds = tv.tv_sec + TIMESTAMP_OFFSET_1900;
   ntp_ts.fraction =
@@ -60,13 +66,39 @@ int main() {
 
   sendto(sockfd, (const char *)buffer, MIN_PACKET_LENGTH, MSG_CONFIRM,
          (const struct sockaddr *)&saddr, sizeof(saddr));
-  printf("Sent.\n");
 
-  int n, len;
+  int n;
+  socklen_t len;
   n = recvfrom(sockfd, (char *)buffer, BUFSIZE, MSG_WAITALL,
                (struct sockaddr *)&saddr, &len);
-  printf("Received.\n");
 
+  // get receive timestamp
+  gettimeofday(&tv, NULL);
   close(sockfd);
+
+  struct ntp_ts_t ntp_ts_sender;
+  ntp_ts_sender.seconds = ntohl(*((int32_t *)(buffer) + 7));
+  ntp_ts_sender.fraction = ntohl(*((int32_t *)(buffer) + 8));
+  struct ntp_ts_t ntp_ts_reflector_receive;
+  ntp_ts_reflector_receive.seconds = ntohl(*((int32_t *)(buffer) + 4));
+  ntp_ts_reflector_receive.fraction = ntohl(*((int32_t *)(buffer) + 5));
+  struct ntp_ts_t ntp_ts_reflector_send;
+  ntp_ts_reflector_send.seconds = ntohl(*((int32_t *)(buffer) + 1));
+  ntp_ts_reflector_send.fraction = ntohl(*((int32_t *)(buffer) + 2));
+
+  struct timeval tv_sender;
+  struct timeval tv_reflector_receive;
+  struct timeval tv_reflector_send;
+  ntp_to_timeval(&ntp_ts_sender, &tv_sender);
+  ntp_to_timeval(&ntp_ts_reflector_receive, &tv_reflector_receive);
+  ntp_to_timeval(&ntp_ts_reflector_send, &tv_reflector_send);
+
+  int outbound_ms = ((tv_reflector_receive.tv_sec - tv_sender.tv_sec) * 1000) +
+                    ((tv_reflector_receive.tv_usec - tv_sender.tv_usec) / 1000);
+  int inbound_ms = ((tv.tv_sec - tv_reflector_send.tv_sec) * 1000) +
+                   ((tv.tv_usec - tv_reflector_send.tv_usec) / 1000);
+
+  printf("%d\n%d\n\n\n", outbound_ms, inbound_ms);
+
   return 0;
 }

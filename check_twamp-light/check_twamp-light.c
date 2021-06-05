@@ -13,6 +13,7 @@
 #define BUFSIZE 4096
 #define MIN_PACKET_LENGTH 17
 #define TIMESTAMP_OFFSET_1900 2208988800
+#define RECEIVE_TIMEOUT 2
 
 struct ntp_ts_t {
   uint32_t seconds;
@@ -28,8 +29,14 @@ int main() {
   int sockfd;
 
   if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-    perror("socket()");
+    perror("snocket()");
     exit(1);
+  }
+
+  struct timeval tv_timeout = {.tv_sec = RECEIVE_TIMEOUT, .tv_usec = 0};
+  if (-1 == setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &tv_timeout,
+                       sizeof(tv_timeout))) {
+    perror("setsockopt");
   }
 
   struct sockaddr_in saddr;
@@ -72,31 +79,41 @@ int main() {
   n = recvfrom(sockfd, (char *)buffer, BUFSIZE, MSG_WAITALL,
                (struct sockaddr *)&saddr, &len);
 
-  // get receive timestamp
-  gettimeofday(&tv, NULL);
-  close(sockfd);
+  int inbound_ms = 0;
+  int outbound_ms = 0;
+  if (n >= MIN_PACKET_LENGTH) {
+    // get receive timestamp
+    gettimeofday(&tv, NULL);
+    close(sockfd);
 
-  struct ntp_ts_t ntp_ts_sender;
-  ntp_ts_sender.seconds = ntohl(*((int32_t *)(buffer) + 7));
-  ntp_ts_sender.fraction = ntohl(*((int32_t *)(buffer) + 8));
-  struct ntp_ts_t ntp_ts_reflector_receive;
-  ntp_ts_reflector_receive.seconds = ntohl(*((int32_t *)(buffer) + 4));
-  ntp_ts_reflector_receive.fraction = ntohl(*((int32_t *)(buffer) + 5));
-  struct ntp_ts_t ntp_ts_reflector_send;
-  ntp_ts_reflector_send.seconds = ntohl(*((int32_t *)(buffer) + 1));
-  ntp_ts_reflector_send.fraction = ntohl(*((int32_t *)(buffer) + 2));
+    struct ntp_ts_t ntp_ts_sender;
+    ntp_ts_sender.seconds = ntohl(*((int32_t *)(buffer) + 7));
+    ntp_ts_sender.fraction = ntohl(*((int32_t *)(buffer) + 8));
+    struct ntp_ts_t ntp_ts_reflector_receive;
+    ntp_ts_reflector_receive.seconds = ntohl(*((int32_t *)(buffer) + 4));
+    ntp_ts_reflector_receive.fraction = ntohl(*((int32_t *)(buffer) + 5));
+    struct ntp_ts_t ntp_ts_reflector_send;
+    ntp_ts_reflector_send.seconds = ntohl(*((int32_t *)(buffer) + 1));
+    ntp_ts_reflector_send.fraction = ntohl(*((int32_t *)(buffer) + 2));
 
-  struct timeval tv_sender;
-  struct timeval tv_reflector_receive;
-  struct timeval tv_reflector_send;
-  ntp_to_timeval(&ntp_ts_sender, &tv_sender);
-  ntp_to_timeval(&ntp_ts_reflector_receive, &tv_reflector_receive);
-  ntp_to_timeval(&ntp_ts_reflector_send, &tv_reflector_send);
+    struct timeval tv_sender;
+    struct timeval tv_reflector_receive;
+    struct timeval tv_reflector_send;
+    ntp_to_timeval(&ntp_ts_sender, &tv_sender);
+    ntp_to_timeval(&ntp_ts_reflector_receive, &tv_reflector_receive);
+    ntp_to_timeval(&ntp_ts_reflector_send, &tv_reflector_send);
 
-  int outbound_ms = ((tv_reflector_receive.tv_sec - tv_sender.tv_sec) * 1000) +
-                    ((tv_reflector_receive.tv_usec - tv_sender.tv_usec) / 1000);
-  int inbound_ms = ((tv.tv_sec - tv_reflector_send.tv_sec) * 1000) +
-                   ((tv.tv_usec - tv_reflector_send.tv_usec) / 1000);
+    outbound_ms = ((tv_reflector_receive.tv_sec - tv_sender.tv_sec) * 1000) +
+                  ((tv_reflector_receive.tv_usec - tv_sender.tv_usec) / 1000);
+    inbound_ms = ((tv.tv_sec - tv_reflector_send.tv_sec) * 1000) +
+                 ((tv.tv_usec - tv_reflector_send.tv_usec) / 1000);
+    if (outbound_ms < 0) {
+      outbound_ms = 0;
+    }
+    if (inbound_ms < 0) {
+      inbound_ms = 0;
+    }
+  }
 
   printf("%d\n%d\n\n\n", outbound_ms, inbound_ms);
 

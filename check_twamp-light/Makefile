@@ -8,7 +8,7 @@ BIN=check_twamp-light
 all: build
 
 build: $(SRCS)
-	@clang $(WARNING_FLAGS) $(COMPILER_FLAGS) -o $(BIN) $(SRCS)
+	@clang $(DEBUG_FLAGS) $(WARNING_FLAGS) -o $(BIN) $(SRCS)
 
 clean:
 	@rm -f $(BIN)

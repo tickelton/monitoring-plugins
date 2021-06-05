@@ -8,12 +8,15 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define DEST_PORT 862
+#define DEFAULT_PORT 862
 #define DEST_ADDR "192.168.178.60"
 #define BUFSIZE 4096
 #define MIN_PACKET_LENGTH 17
 #define TIMESTAMP_OFFSET_1900 2208988800
 #define RECEIVE_TIMEOUT 2
+#define PROGRAM_NAME "check_twamp-light"
+#define VERSION "0.0.1"
+#define MAX_HOSTNAME 128
 
 struct ntp_ts_t {
   uint32_t seconds;
@@ -25,9 +28,60 @@ void ntp_to_timeval(struct ntp_ts_t *ntp, struct timeval *tv) {
   tv->tv_usec = (uint32_t)((double)ntp->fraction * 1.0e6 / (double)(1LL << 32));
 }
 
-int main() {
-  int sockfd;
+void usage(char *cmd_name) {
+  printf("Usage: %s [-h] [-V] [-p PORT] HOST\n", cmd_name);
+}
 
+void version() {
+  printf("%s %s\n", PROGRAM_NAME, VERSION);
+  printf("Copyright (C) 2021 tickelton@gmail.com\n");
+  // TODO: add license information
+  printf("Licence tbd\n");
+}
+
+int main(int argc, char **argv) {
+  int opt;
+  int dest_port = DEFAULT_PORT;
+  char check_host[MAX_HOSTNAME];
+  memset(check_host, 0, MAX_HOSTNAME);
+  while ((opt = getopt(argc, argv, "hp:V")) !=
+         -1) {  // get option from the getopt() method
+    switch (opt) {
+      case 'h':
+        usage(argv[0]);
+        return 0;
+        break;
+      case 'p':
+        dest_port = atoi(optarg);
+        break;
+      case 'V':
+        version();
+        return 0;
+        break;
+      case ':':
+        usage(argv[0]);
+        return 1;
+        break;
+      case '?':
+        usage(argv[0]);
+        return 1;
+        break;
+    }
+  }
+  if (optind != argc - 1) {
+    usage(argv[0]);
+    return 1;
+  } else {
+    strncpy(check_host, argv[optind], MAX_HOSTNAME);
+    check_host[MAX_HOSTNAME - 1] = '\0';
+  }
+
+  if (dest_port < 0 || dest_port > 65536) {
+    printf("Invalid port: %d\n", dest_port);
+    return 1;
+  }
+
+  int sockfd;
   if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
     perror("snocket()");
     exit(1);
@@ -43,8 +97,9 @@ int main() {
   memset(&saddr, 0, sizeof(saddr));
 
   saddr.sin_family = AF_INET;
-  saddr.sin_port = htons(DEST_PORT);
-  saddr.sin_addr.s_addr = inet_addr(DEST_ADDR);
+  saddr.sin_port = htons(dest_port);
+  // TODO: convert hostname to IP address 
+  saddr.sin_addr.s_addr = inet_addr(check_host);
 
   char buffer[BUFSIZE];
   memset(buffer, 0, BUFSIZE);
@@ -115,7 +170,7 @@ int main() {
     }
   }
 
-  printf("%.2f\n%.2f\n\n\n", outbound_ms, inbound_ms);
+  printf("%.2f\n%.2f\n%s\n\n", outbound_ms, inbound_ms, check_host);
 
   return 0;
 }

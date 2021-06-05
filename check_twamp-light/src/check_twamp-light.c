@@ -79,8 +79,8 @@ int main() {
   n = recvfrom(sockfd, (char *)buffer, BUFSIZE, MSG_WAITALL,
                (struct sockaddr *)&saddr, &len);
 
-  int inbound_ms = 0;
-  int outbound_ms = 0;
+  double inbound_ms = 0;
+  double outbound_ms = 0;
   if (n >= MIN_PACKET_LENGTH) {
     // get receive timestamp
     gettimeofday(&tv, NULL);
@@ -104,9 +104,9 @@ int main() {
     ntp_to_timeval(&ntp_ts_reflector_send, &tv_reflector_send);
 
     outbound_ms = ((tv_reflector_receive.tv_sec - tv_sender.tv_sec) * 1000) +
-                  ((tv_reflector_receive.tv_usec - tv_sender.tv_usec) / 1000);
+                  ((tv_reflector_receive.tv_usec - tv_sender.tv_usec) / 1000.0);
     inbound_ms = ((tv.tv_sec - tv_reflector_send.tv_sec) * 1000) +
-                 ((tv.tv_usec - tv_reflector_send.tv_usec) / 1000);
+                 ((tv.tv_usec - tv_reflector_send.tv_usec) / 1000.0);
     if (outbound_ms < 0) {
       outbound_ms = 0;
     }
@@ -115,7 +115,7 @@ int main() {
     }
   }
 
-  printf("%d\n%d\n\n\n", outbound_ms, inbound_ms);
+  printf("%.2f\n%.2f\n\n\n", outbound_ms, inbound_ms);
 
   return 0;
 }

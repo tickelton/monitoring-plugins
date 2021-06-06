@@ -1,3 +1,8 @@
+/*
+ * Copyright 2021, tickelton@gmail.com
+ * SPDX-License-Identifier: MIT
+ */
+
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <stdio.h>
@@ -98,7 +103,7 @@ int main(int argc, char **argv) {
 
   saddr.sin_family = AF_INET;
   saddr.sin_port = htons(dest_port);
-  // TODO: convert hostname to IP address 
+  // TODO: convert hostname to IP address
   saddr.sin_addr.s_addr = inet_addr(check_host);
 
   char buffer[BUFSIZE];

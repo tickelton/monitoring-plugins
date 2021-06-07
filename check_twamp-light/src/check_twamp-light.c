@@ -4,6 +4,7 @@
  */
 
 #include <arpa/inet.h>
+#include <netdb.h>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,13 +36,18 @@ void ntp_to_timeval(struct ntp_ts_t *ntp, struct timeval *tv) {
 
 void usage(char *cmd_name) {
   printf("Usage: %s [-h] [-V] [-p PORT] HOST\n", cmd_name);
+  printf("  Arguments:\n");
+  printf("    HOST    : Destination host\n");
+  printf("\n  Options:\n");
+  printf("    -h      : Show help message\n");
+  printf("    -V      : Show version information\n");
+  printf("    -p PORT : Set destination port\n");
 }
 
 void version() {
   printf("%s %s\n", PROGRAM_NAME, VERSION);
   printf("Copyright (C) 2021 tickelton@gmail.com\n");
-  // TODO: add license information
-  printf("Licence tbd\n");
+  printf("Licence: MIT\n");
 }
 
 int main(int argc, char **argv) {
@@ -86,6 +92,21 @@ int main(int argc, char **argv) {
     return 1;
   }
 
+  struct hostent *host;
+  if ((host = gethostbyname(check_host)) == NULL) {
+    perror("gethostbyname");
+    return 1;
+  }
+
+  if (host->h_addrtype != AF_INET) {
+    printf("Unexpected address type: %d\n", host->h_addrtype);
+    return 1;
+  }
+  if (host->h_addr_list[0] == 0) {
+    printf("Unable to get address for %s\n", check_host);
+    return 1;
+  }
+
   int sockfd;
   if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
     perror("snocket()");
@@ -103,8 +124,7 @@ int main(int argc, char **argv) {
 
   saddr.sin_family = AF_INET;
   saddr.sin_port = htons(dest_port);
-  // TODO: convert hostname to IP address
-  saddr.sin_addr.s_addr = inet_addr(check_host);
+  saddr.sin_addr.s_addr = *(long *)(host->h_addr_list)[0];
 
   char buffer[BUFSIZE];
   memset(buffer, 0, BUFSIZE);

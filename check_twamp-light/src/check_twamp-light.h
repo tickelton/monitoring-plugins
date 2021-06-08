@@ -13,7 +13,6 @@
 #include <unistd.h>
 
 #define DEFAULT_PORT 862
-#define DEST_ADDR "192.168.178.60"
 #define BUFSIZE 4096
 #define MIN_PACKET_LENGTH 17
 #define TIMESTAMP_OFFSET_1900 2208988800

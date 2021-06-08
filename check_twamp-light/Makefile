@@ -30,7 +30,7 @@ TARGET_EXTENSION=out
 CFLAGS_DEBUG=-g -O0
 CFLAGS_TEST=-DUNIT_TESTING
 CFLAGS_RELEASE=-O3
-WARNING_FLAGS=-Wall
+WARNING_FLAGS=-Wall -Wextra
 
 RESULTS = $(patsubst $(PATHT)test_%.c,$(PATHR)test_%.txt,$(SRCT) )
 
@@ -49,7 +49,7 @@ debug: CFLAGS+=$(CFLAGS_DEBUG)
 debug: $(BUILD_PATHS) $(BIN)
 
 $(BIN): $(OBJS)
-	$(LD) -o $@ $(WARNING_FLAGS) $^
+	$(LD) -o $@ $^
 
 test: CFLAGS+=$(CFLAGS_DEBUG)
 test: CFLAGS+=$(CFLAGS_TEST)
@@ -69,13 +69,13 @@ $(PATHB)test_%.$(TARGET_EXTENSION): $(PATHO)test_%.o $(PATHO)%.o $(PATHO)unity.o
 	$(LD) -o $@ $^
 
 $(PATHO)%.o:: $(PATHT)%.c
-	$(COMPILE) $(CFLAGS) $< -o $@
+	$(COMPILE) $(CFLAGS) $(WARNING_FLAGS) $< -o $@
 
 $(PATHO)%.o:: $(PATHS)%.c
-	$(COMPILE) $(CFLAGS) $< -o $@
+	$(COMPILE) $(CFLAGS) $(WARNING_FLAGS) $< -o $@
 
 $(PATHO)%.o:: $(PATHU)%.c $(PATHU)%.h
-	$(COMPILE) $(CFLAGS) $< -o $@
+	$(COMPILE) $(CFLAGS) $(WARNING_FLAGS) $< -o $@
 
 $(PATHD)%.d:: $(PATHT)%.c
 	$(DEPEND) $@ $<

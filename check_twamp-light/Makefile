@@ -130,6 +130,14 @@ format:
 		|| true \
 		;)
 
+tidy:
+	@$(foreach infile,$(SRCS), clang-tidy \
+		-checks=-*,clang-analyzer-*,bugprone*,google*,misc*,modernize*,performance*,readability*,-*DeprecatedOrUnsafeBufferHandling \
+		$(infile) \
+		-- \
+		|| true \
+		;)
+
 .PRECIOUS: $(PATHB)test_%.$(TARGET_EXTENSION)
 .PRECIOUS: $(PATHD)%.d
 .PRECIOUS: $(PATHO)%.o

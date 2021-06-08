@@ -28,7 +28,5 @@ struct ntp_ts_t {
 };
 
 void ntp_to_timeval(struct ntp_ts_t *ntp, struct timeval *tv);
-void usage(char *cmd_name);
-void version();
 
 #endif /* _CHECK_TWAMP_LIGHT_H_ */

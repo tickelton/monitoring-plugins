@@ -2,6 +2,8 @@
 .PHONY: distclean
 .PHONY: test
 .PHONY: help
+.PHONY: format
+.PHONY: format-diff
 
 PATHU = unity/
 PATHS = src/
@@ -15,6 +17,7 @@ BUILD_PATHS = $(PATHB) $(PATHD) $(PATHO) $(PATHR)
 
 SRCT = $(wildcard $(PATHT)*.c)
 SRCS = $(wildcard $(PATHS)*.c)
+HEADERS = $(wildcard $(PATHS)*.h)
 OBJS = $(patsubst $(PATHS)%.c,$(PATHO)%.o,$(SRCS) )
 
 CC=clang
@@ -108,7 +111,24 @@ help:
 	@echo "help        :    show this help message"
 	@echo "clean       :    delete build artifacts"
 	@echo "distclean   :    delete entire build directory"
+	@echo "format-diff :    show changes clang-format would make"
+	@echo "format      :    format source files with clang-format"
 
+format-diff:
+	@$(foreach infile,$(SRCT) $(SRCS) $(HEADER), clang-format \
+		--style=Google \
+		$(infile) \
+		| diff -u $(infile) - \
+		|| true \
+		;)
+
+format:
+	@$(foreach infile,$(SRCT) $(SRCS) $(HEADER), clang-format \
+		-i \
+		--style=Google \
+		$(infile) \
+		|| true \
+		;)
 
 .PRECIOUS: $(PATHB)test_%.$(TARGET_EXTENSION)
 .PRECIOUS: $(PATHD)%.d

@@ -1,3 +1,8 @@
+/*
+ * Copyright 2021, tickelton@gmail.com
+ * SPDX-License-Identifier: MIT
+ */
+
 #include "unity.h"
 #include "check_twamp-light.h"
 

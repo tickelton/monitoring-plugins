@@ -5,6 +5,22 @@
 
 #include "check_twamp-light.h"
 
+static void usage(char *cmd_name) {
+  printf("Usage: %s [-h] [-V] [-p PORT] HOST\n", cmd_name);
+  printf("  Arguments:\n");
+  printf("    HOST    : Destination host\n");
+  printf("\n  Options:\n");
+  printf("    -h      : Show help message\n");
+  printf("    -V      : Show version information\n");
+  printf("    -p PORT : Set destination port\n");
+}
+
+static void version() {
+  printf("%s %s\n", PROGRAM_NAME, VERSION);
+  printf("Copyright (C) 2021 tickelton@gmail.com\n");
+  printf("Licence: MIT\n");
+}
+
 int main(int argc, char **argv) {
   int opt;
   int dest_port = DEFAULT_PORT;

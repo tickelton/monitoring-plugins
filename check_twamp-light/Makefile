@@ -5,6 +5,7 @@
 .PHONY: format
 .PHONY: format-diff
 .PHONY: tidy
+.PHONY: tidy-full
 
 PATHU = unity/
 PATHS = src/
@@ -114,6 +115,8 @@ help:
 	@echo "distclean   :    delete entire build directory"
 	@echo "format-diff :    show changes clang-format would make"
 	@echo "format      :    format source files with clang-format"
+	@echo "tidy        :    run static analysis with clang-tidy"
+	@echo "tidy-full   :    run clang-tidy with more checks"
 
 format-diff:
 	@$(foreach infile,$(SRCT) $(SRCS) $(HEADER), clang-format \
@@ -132,6 +135,14 @@ format:
 		;)
 
 tidy:
+	@$(foreach infile,$(SRCS), clang-tidy \
+		-checks=-*,clang-analyzer-*,bugprone*,google*,misc*,modernize*,performance*,readability*,-*DeprecatedOrUnsafeBufferHandling,-*readability-magic-numbers \
+		$(infile) \
+		-- \
+		|| true \
+		;)
+
+tidy-full:
 	@$(foreach infile,$(SRCS), clang-tidy \
 		-checks=-*,clang-analyzer-*,bugprone*,google*,misc*,modernize*,performance*,readability*,-*DeprecatedOrUnsafeBufferHandling \
 		$(infile) \

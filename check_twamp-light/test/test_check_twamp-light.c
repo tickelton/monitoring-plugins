@@ -51,10 +51,36 @@ void test_ntp_to_timeval_usecs_should_be_250ms(void) {
   TEST_ASSERT_EQUAL_UINT32(250000, tv.tv_usec);
 }
 
+void test_timeval_to_ntp_tv_should_be_01_01_1970(void) {
+  struct ntp_ts_t ntp_ts;
+  struct timeval tv;
+
+  tv.tv_sec = 0;
+  tv.tv_usec = 0;
+  timeval_to_ntp(&tv, &ntp_ts);
+
+  TEST_ASSERT_EQUAL_UINT32(OFFSET_1900_1970, ntp_ts.seconds);
+  TEST_ASSERT_EQUAL_UINT32(4294, ntp_ts.fraction);
+}
+
+void test_timeval_to_ntp_tv_fraction_should_be_500ms(void) {
+  struct ntp_ts_t ntp_ts;
+  struct timeval tv;
+
+  tv.tv_sec = 0;
+  tv.tv_usec = 500000;
+  timeval_to_ntp(&tv, &ntp_ts);
+
+  TEST_ASSERT_EQUAL_UINT32(OFFSET_1900_1970, ntp_ts.seconds);
+  TEST_ASSERT_EQUAL_UINT32(2147487942, ntp_ts.fraction);
+}
+
 int main(void) {
   UNITY_BEGIN();
   RUN_TEST(test_ntp_to_timeval_tv_should_be_0_at_01_01_1900);
   RUN_TEST(test_ntp_to_timeval_usecs_should_be_500ms);
   RUN_TEST(test_ntp_to_timeval_usecs_should_be_250ms);
+  RUN_TEST(test_timeval_to_ntp_tv_should_be_01_01_1970);
+  RUN_TEST(test_timeval_to_ntp_tv_fraction_should_be_500ms);
   return UNITY_END();
 }

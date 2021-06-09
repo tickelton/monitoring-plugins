@@ -4,6 +4,7 @@
 .PHONY: help
 .PHONY: format
 .PHONY: format-diff
+.PHONY: tidy
 
 PATHU = unity/
 PATHS = src/
@@ -43,7 +44,7 @@ IGNORE = `grep -s IGNORE $(PATHR)*.txt`
 
 BIN=$(PATHB)check_twamp-light
 
-all: debug
+all: release
 
 release: CFLAGS+=$(CFLAGS_RELEASE)
 release: $(BUILD_PATHS) $(BIN)
@@ -54,7 +55,7 @@ debug: $(BUILD_PATHS) $(BIN)
 $(BIN): $(OBJS)
 	$(LD) -o $@ $^
 
-test: CFLAGS+=$(CFLAGS_DEBUG)
+test: CFLAGS+=$(CFLAGS_RELEASE)
 test: CFLAGS+=$(CFLAGS_TEST)
 test: $(BUILD_PATHS) $(RESULTS)
 	@echo "-----------------------\nIGNORES:\n-----------------------"

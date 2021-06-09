@@ -41,9 +41,6 @@ int main(int argc, char **argv) {
         return 0;
         break;
       case ':':
-        usage(argv[0]);
-        return 1;
-        break;
       case '?':
         usage(argv[0]);
         return 1;
@@ -53,10 +50,10 @@ int main(int argc, char **argv) {
   if (optind != argc - 1) {
     usage(argv[0]);
     return 1;
-  } else {
-    strncpy(check_host, argv[optind], MAX_HOSTNAME);
-    check_host[MAX_HOSTNAME - 1] = '\0';
   }
+
+  strncpy(check_host, argv[optind], MAX_HOSTNAME);
+  check_host[MAX_HOSTNAME - 1] = '\0';
 
   if (dest_port < 0 || dest_port > 65536) {
     printf("Invalid port: %d\n", dest_port);

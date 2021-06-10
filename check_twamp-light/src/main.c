@@ -26,8 +26,7 @@ int main(int argc, char **argv) {
   int dest_port = DEFAULT_PORT;
   char check_host[MAX_HOSTNAME];
   memset(check_host, 0, MAX_HOSTNAME);
-  while ((opt = getopt(argc, argv, "hp:V")) !=
-         -1) {  // get option from the getopt() method
+  while ((opt = getopt(argc, argv, "hp:V")) != -1) {
     switch (opt) {
       case 'h':
         usage(argv[0]);
@@ -79,7 +78,7 @@ int main(int argc, char **argv) {
   /* create socket */
   int sockfd;
   if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-    perror("snocket()");
+    perror("socket()");
     exit(1);
   }
 

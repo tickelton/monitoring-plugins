@@ -101,6 +101,7 @@ clean:
 	$(RMF) $(PATHO)*.o
 	$(RMF) $(PATHB)*.$(TARGET_EXTENSION)
 	$(RMF) $(PATHR)*.txt
+	$(RMF) $(BIN)
 
 distclean: clean
 	$(RMFR) $(PATHB)

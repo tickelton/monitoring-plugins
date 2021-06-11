@@ -7,4 +7,5 @@ BIN=dummy-reflector
 build: $(SRCS)
 	$(CC) $(CFLAGS) -o $(BIN) $(SRCS)
 
-
+clean:
+	rm -f $(BIN)

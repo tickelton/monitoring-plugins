@@ -169,7 +169,7 @@ int main(int argc, char **argv) {
     }
   }
 
-  printf("%.2f\n%.2f\n%s\n\n", outbound_ms, inbound_ms, check_host);
+  printf("%.2f\n%.2f\n\n%s\n", outbound_ms, inbound_ms, check_host);
 
   return 0;
 }

@@ -26,7 +26,7 @@ static void usage(char *cmd_name) {
   printf("\n  Options:\n");
   printf("    -h      : Show help message\n");
   printf("    -p PORT : Set destination port\n");
-  printf("    -r US   : Set receiv delay to US microseconds\n");
+  printf("    -r US   : Set receive delay to US microseconds\n");
   printf("    -s US   : Set send delay to US microseconds\n");
 }
 
